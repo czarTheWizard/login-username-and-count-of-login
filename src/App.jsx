@@ -1,72 +1,42 @@
+import { useEffect } from "react";
 import { useState } from "react";
 
-function ThemeColor() {
-  const [settings, setSettings] = useState(() => {
-    const savedUser = localStorage.getItem("settings");
+function Products() {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-    if (savedUser) {
-      return JSON.parse(savedUser);
-    }
-    return { username: "", theme: "Light", notifications: false };
-  });
+  useEffect(() => {
+    fetch("https://fakestoreapi.com/products")
+      .then((response) => {
+        if (!response.ok) {
+          throw new "Failed to fetch products"();
+        }
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+        return response.json();
+      })
+      .then((data) => {
+        setProducts(data);
+        setLoading(false);
+      })
 
-    setSettings({
-      ...settings,
-      [name]: type === "checkbox" ? checked : value,
-    });
-  };
-  const SavedSetting = () => {
-    localStorage.setItem("settings", JSON.stringify(settings));
-  };
-
-  const Clear = () => {
-    localStorage.removeItem("settings");
-
-    setSettings({
-      username: "",
-      theme: "Light",
-      notifications: false,
-    });
-  };
-
+      .catch((error) => {
+        setError(error.message);
+        setLoading(false);
+      });
+  }, []);
   return (
     <div>
-      <input
-        type="text"
-        name="username"
-        placeholder="Enter name"
-        onChange={handleChange}
-        value={settings.username}
-      />
-
-      <select onChange={handleChange} value={settings.theme} name="theme">
-        <option>Light</option>
-        <option>Dark</option>
-      </select>
-
-      <input
-        type="checkbox"
-        name="notifications"
-        onChange={handleChange}
-        checked={settings.notifications}
-      />
-      <button onClick={SavedSetting}>Save</button>
-      <button onClick={Clear}> Delete</button>
-
-      <h2>Current Settings</h2>
-
-      <p>Username: {settings.username}</p>
-
-      <p>Theme: {settings.theme}</p>
-
-      <p>
-        Notifications:
-        {settings.notifications ? " Enabled" : " Disabled"}
-      </p>
+      <h2>Products</h2>
+      {products.map((product) => (
+        <div key={product.id}>
+          <p>{product.title}</p>
+          <p>{product.price}</p>
+        </div>
+      ))}
+      ;
     </div>
   );
 }
-export default ThemeColor;
+
+export default Products;
